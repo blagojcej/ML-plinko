@@ -41,3 +41,22 @@ function runAnalysis() {
 function distance(point) {
   return Math.abs(point - predictionPoint);
 }
+
+/**
+ * Split training set of data from test set data
+ * 
+ * @param {Array} data Training data set
+ * @param {integer} testCount How many records take out of dataset and put into test set, remaining will stay into training dataset 
+ * 
+ * @returns {Array} first parameter is test set, second parameter is training data set
+ */
+function splitDataset(data, testCount) {
+  // Shuffle training data
+  const shuffled = _.shuffle(data);
+
+  // Separate test set and training set
+  const testSet = _.slice(shuffled, 0, testCount);
+  const trainingSet = _.slice(shuffled, testCount);
+
+  return [testSet, trainingSet];
+}
