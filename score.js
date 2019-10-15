@@ -1,5 +1,5 @@
 const outputs = [];
-const predictionPoint = 300;
+// const predictionPoint = 300;
 const k = 3;
 
 function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
@@ -13,9 +13,53 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 function runAnalysis() {
   // Write code here to analyze stuff
 
-  const bucket = _.chain(outputs)
+  const testSetSize = 10;
+  // Make test for 10 random separete points
+  const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
+
+  /*
+  let numberCorrect = 0;
+  // Iterate over everything inside testSet and use trainingSet and KNN function to make prediction
+  for (let i = 0; i < testSet.length; i++) {
+    // testSet[i][0] gives first element in array
+    const bucket = knn(trainingSet, testSet[i][0]);
+
+    // Log the bucket number 3rd element in testSet
+    // console.log(bucket, testSet[i][3]);
+
+    // Count correct values
+    if (bucket === testSet[i][3]) {
+      numberCorrect++;
+    }
+  }
+  // const bucket = knn(outputs);
+  // console.log('Your point will probably fall into ', bucket);
+  console.log('Accuracy: ', numberCorrect / testSetSize);
+  */
+
+  // Refactoring for loop
+  const accuracy = _.chain(testSet)
+    // Get all records match criteria
+    .filter(testPoint => knn(trainingSet, testPoint[0]) === testPoint[3])
+    // Count filtered records
+    .size()
+    // Calculate percentage
+    .divide(testSetSize)
+    .value();
+
+  console.log('Accuracy: ', accuracy);
+}
+
+/**
+ * Function which run KNN algorithm to analyze given data and predict most common result
+ * 
+ * @param {Array} dataset Dataset for training or analysis
+ * @param {integer} point Distance point 
+ */
+function knn(dataset, point) {
+  return _.chain(dataset)
     // Subsctract by 300 using distance function and map result as first element with bucket number as second element
-    .map(row => [distance(row[0]), row[3]])
+    .map(row => [distance(row[0], point), row[3]])
     // After getting/maping sort distance results from least to greatest
     .sortBy(row => row[0])
     // Take top three elements
@@ -34,12 +78,10 @@ function runAnalysis() {
     .parseInt()
     // Get the value
     .value()
-
-  console.log('Your point will probably fall into ', bucket);
 }
 
-function distance(point) {
-  return Math.abs(point - predictionPoint);
+function distance(pointA, pointB) {
+  return Math.abs(pointA - pointB);
 }
 
 /**
