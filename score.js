@@ -1,6 +1,6 @@
 const outputs = [];
 // const predictionPoint = 300;
-const k = 3;
+// const k = 3;
 
 function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
   // Ran every time a balls drops into a bucket
@@ -13,7 +13,9 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 function runAnalysis() {
   // Write code here to analyze stuff
 
-  const testSetSize = 10;
+  // The bigger test set is, the lower accuracy result we've got
+  // const testSetSize = 10;
+  const testSetSize = 100;
   // Make test for 10 random separete points
   const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
 
@@ -37,17 +39,21 @@ function runAnalysis() {
   console.log('Accuracy: ', numberCorrect / testSetSize);
   */
 
+  // k is 20
+  // for optimal k result we choose middle value
   // Refactoring for loop
-  const accuracy = _.chain(testSet)
-    // Get all records match criteria
-    .filter(testPoint => knn(trainingSet, testPoint[0]) === testPoint[3])
-    // Count filtered records
-    .size()
-    // Calculate percentage
-    .divide(testSetSize)
-    .value();
+  _.range(1, 20).forEach(k => {
+    const accuracy = _.chain(testSet)
+      // Get all records match criteria
+      .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
+      // Count filtered records
+      .size()
+      // Calculate percentage
+      .divide(testSetSize)
+      .value();
 
-  console.log('Accuracy: ', accuracy);
+    console.log('For k of ', k, ' accuracy is: ', accuracy);
+  });
 }
 
 /**
@@ -55,8 +61,9 @@ function runAnalysis() {
  * 
  * @param {Array} dataset Dataset for training or analysis
  * @param {integer} point Distance point 
+ * @param {integer} k Top k elements 
  */
-function knn(dataset, point) {
+function knn(dataset, point, k) {
   return _.chain(dataset)
     // Subsctract by 300 using distance function and map result as first element with bucket number as second element
     .map(row => [distance(row[0], point), row[3]])
