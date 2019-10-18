@@ -40,7 +40,7 @@ function runAnalysis() {
   */
 
   // k is 20
-  // for optimal k result we choose middle value
+  // for optimal k result we choose average value
   // Refactoring for loop
   _.range(1, 20).forEach(k => {
     const accuracy = _.chain(testSet)
