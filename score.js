@@ -40,12 +40,14 @@ function runAnalysis() {
   */
 
   // k is 20
-  // for optimal k result we choose average value
+  // for optimal k result we choose average value from result
   // Refactoring for loop
   _.range(1, 20).forEach(k => {
     const accuracy = _.chain(testSet)
       // Get all records match criteria
-      .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
+      // .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
+      // Putting initial on point parameter because we don't want to add last element (bucket number) of testing dataset      
+      .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === testPoint[3])
       // Count filtered records
       .size()
       // Calculate percentage
@@ -58,6 +60,7 @@ function runAnalysis() {
 
 /**
  * Function which run KNN algorithm to analyze given data and predict most common result
+ * IMPORTANT: Point parametar has to have 3 values!!!
  * 
  * @param {Array} dataset Dataset for training or analysis
  * @param {integer} point Distance point 
@@ -65,8 +68,17 @@ function runAnalysis() {
  */
 function knn(dataset, point, k) {
   return _.chain(dataset)
-    // Subsctract by 300 using distance function and map result as first element with bucket number as second element
-    .map(row => [distance(row[0], point), row[3]])
+    // Subsctract by point using distance function and map result as first element with bucket number as second element
+    // .map(row => [distance(row[0], point), row[3]])
+    // Work with as many parameters as we want
+    .map(row => {
+      return [
+        // Putting initial on point parameter because we don't want to add last element (bucket number) of testing dataset
+        // distance(_.initial(row), _.initial(point)),
+        distance(_.initial(row), point),
+        _.last(row)
+      ]
+    })
     // After getting/maping sort distance results from least to greatest
     .sortBy(row => row[0])
     // Take top three elements
@@ -87,8 +99,24 @@ function knn(dataset, point, k) {
     .value()
 }
 
+// Work with as many parameters as we want
 function distance(pointA, pointB) {
-  return Math.abs(pointA - pointB);
+  // Work with two parameters
+  // pointA=300, pointB=350
+  // return Math.abs(pointA - pointB);
+
+  // pointA=[300,.5,19], pointB=[350,.55,16]
+  return _.chain(pointA)
+    // Match every index of every array with other arrays ex. [[300,350],[.5,.55],[19,16]]
+    .zip(pointB)
+    // .map(pair => (pair[0] - pair[1]))
+    // ES6 sintax (**) - square sign
+    .map(([a,b]) => (a - b) ** 2)
+    // Sum them all up
+    .sum()
+    // Get the value/result
+    // Square the root
+    .value() ** 0.5;
 }
 
 /**
