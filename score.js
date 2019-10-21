@@ -1,3 +1,11 @@
+/**
+ * Summary:
+ * 1. calculation distance between multiple parameters - Pythagorean theorem: C=(A ** 2 + B ** 2 ... + [N ** 2]) ** 0.5
+ * 2. ball bouncines is not affecting on knn results - in reality bouncines decimal values are close each other. 
+ *    - Reference: Course: Udemy - Machine Learning with Javascript, Chapter: Algorithm Overview, Lesson: Magnitude Offsets in Features & Lesson: Feature Selection with KNN
+ * 3. normalizing dataset - Normalizing one feature at the time, min-max method. Equation: NormalizedDataSet=(FeatureValue-minOfFeatureValues)/(maxOfFeatureValues-minOfFeatureValues)
+ */
+
 const outputs = [];
 // const predictionPoint = 300;
 // const k = 3;
@@ -16,8 +24,13 @@ function runAnalysis() {
   // The bigger test set is, the lower accuracy result we've got
   // const testSetSize = 10;
   const testSetSize = 100;
+  const k = 10;
+
   // Make test for 10 random separete points
-  const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
+  // Not nomralized dataset
+  // const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
+  // Normalized dataset, get frist 3 columns, 4th columns is label (bucket number)
+  const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize);
 
   /*
   let numberCorrect = 0;
@@ -33,7 +46,7 @@ function runAnalysis() {
     if (bucket === testSet[i][3]) {
       numberCorrect++;
     }
-  }
+  } 
   // const bucket = knn(outputs);
   // console.log('Your point will probably fall into ', bucket);
   console.log('Accuracy: ', numberCorrect / testSetSize);
@@ -42,7 +55,8 @@ function runAnalysis() {
   // k is 20
   // for optimal k result we choose average value from result
   // Refactoring for loop
-  _.range(1, 20).forEach(k => {
+  // feature ===0 - first element in array, feature === 1 - second element in array, feature === 2 - third element in array
+  _.range(0, 3).forEach(feature => {
     const accuracy = _.chain(testSet)
       // Get all records match criteria
       // .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
@@ -111,7 +125,7 @@ function distance(pointA, pointB) {
     .zip(pointB)
     // .map(pair => (pair[0] - pair[1]))
     // ES6 sintax (**) - square sign
-    .map(([a,b]) => (a - b) ** 2)
+    .map(([a, b]) => (a - b) ** 2)
     // Sum them all up
     .sum()
     // Get the value/result
@@ -136,4 +150,34 @@ function splitDataset(data, testCount) {
   const trainingSet = _.slice(shuffled, testCount);
 
   return [testSet, trainingSet];
+}
+
+/**
+ * Function which return normalized values between 0 and 1 from array(s) of values
+ * 
+ * @param {Array} data array of data to be normalized
+ * @param {integer} featureCount How many columns of array data we want to normalize
+ */
+function minMax(data, featureCount) {
+  // Clone data array, because we don;t want to modify original data variable/parameter
+  const clonedData = _.cloneDeep(data);
+
+  //Normalize clonedData for each element in array
+  for (let i = 0; i < featureCount; i++) {
+    // Extract column which we'll normalize (array of numbers)
+    const column = clonedData.map(row => row[i]);
+
+    // Extract min and max values
+    const min = _.min(column);
+    const max = _.max(column);
+
+    // Loop through each array, and get value from "i" element
+    for (let j = 0; j < clonedData.length; j++) {
+      // Calculate normalized value
+      // See reference at the beginning of the document (3)
+      clonedData[j][i] = (clonedData[j][i] - min) / (max - min);
+    }
+  }
+
+  return clonedData;
 }
