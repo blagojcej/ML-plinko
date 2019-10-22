@@ -26,11 +26,10 @@ function runAnalysis() {
   const testSetSize = 100;
   const k = 10;
 
-  // Make test for 10 random separete points
   // Not nomralized dataset
   // const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
   // Normalized dataset, get frist 3 columns, 4th columns is label (bucket number)
-  const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize);
+  // const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize);
 
   /*
   let numberCorrect = 0;
@@ -54,21 +53,29 @@ function runAnalysis() {
 
   // k is 20
   // for optimal k result we choose average value from result
-  // Refactoring for loop
+  // Refactoring for loop to check which feature has biggest impact on accuracy, which feature has give us information about prediction
   // feature ===0 - first element in array, feature === 1 - second element in array, feature === 2 - third element in array
   _.range(0, 3).forEach(feature => {
+    // We don't want to modify original data (outputs) and we select just the feature we care at given time as first element in array, and bucket number/label as last element of array
+    const data = _.map(outputs, row => [row[feature], _.last(row)]);
+    // Move datasets inside foreach feature and from abova  data object we have only one feature instead of 3
+    // Normalized dataset, get frist 3 columns, 4th columns is label (bucket number)
+    const [testSet, trainingSet] = splitDataset(minMax(data, 1), testSetSize);
     const accuracy = _.chain(testSet)
       // Get all records match criteria
       // .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
-      // Putting initial on point parameter because we don't want to add last element (bucket number) of testing dataset      
-      .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === testPoint[3])
+      // Putting initial on point parameter because we don't want to add last element (bucket number) of testing dataset
+      // We don't have 3 features, we're iterating over one feature at time, so the testPoint[3] gave us bucket number in past, but now bucket number is second element
+      // .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === testPoint[3])
+      .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === _.last(testPoint))
       // Count filtered records
       .size()
       // Calculate percentage
       .divide(testSetSize)
       .value();
 
-    console.log('For k of ', k, ' accuracy is: ', accuracy);
+    // console.log('For k of ', k, ' accuracy is: ', accuracy);
+    console.log('For feature of ', feature, ' accuracy is: ', accuracy);
   });
 }
 
